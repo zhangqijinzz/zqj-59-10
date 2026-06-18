@@ -24,6 +24,7 @@ export default function Farm() {
     harvestPlot,
     updateGrowth,
     addParentAction,
+    setMatureBadgeDismissed,
   } = useFarmStore();
 
   const { coins, spendCoins, addCoins, streakDays } = useUserStore();
@@ -41,6 +42,15 @@ export default function Farm() {
     }, 1000);
     return () => clearInterval(interval);
   }, [updateGrowth]);
+
+  useEffect(() => {
+    return () => {
+      const hasMature = plots.some((p) => p.stage === "mature");
+      if (hasMature) {
+        setMatureBadgeDismissed(false);
+      }
+    };
+  }, [plots, setMatureBadgeDismissed]);
 
   useEffect(() => {
     const parentInterval = setInterval(() => {

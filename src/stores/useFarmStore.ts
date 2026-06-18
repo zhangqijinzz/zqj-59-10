@@ -20,6 +20,7 @@ interface FarmState {
   selectedTool: ToolType | null;
   selectedCrop: Crop | null;
   parentActions: { time: string; action: string; by: string }[];
+  matureBadgeDismissed: boolean;
   selectTool: (tool: ToolType | null) => void;
   selectCrop: (crop: Crop | null) => void;
   plantSeed: (plotId: number, cropId: string) => boolean;
@@ -28,6 +29,8 @@ interface FarmState {
   harvestPlot: (plotId: number) => number;
   updateGrowth: () => void;
   addParentAction: (action: string, by: string) => void;
+  setMatureBadgeDismissed: (dismissed: boolean) => void;
+  dismissMatureBadge: () => void;
 }
 
 function createInitialPlots(): FarmPlot[] {
@@ -51,6 +54,14 @@ function savePlots(plots: FarmPlot[]) {
   setStorage("farm_plots", plots);
 }
 
+function loadMatureBadgeDismissed(): boolean {
+  return getStorage<boolean>("farm_mature_badge_dismissed", false);
+}
+
+function saveMatureBadgeDismissed(dismissed: boolean) {
+  setStorage("farm_mature_badge_dismissed", dismissed);
+}
+
 const INITIAL_PARENT_ACTIONS = [
   { time: "昨天 18:30", action: "给玉米地浇水了", by: "爸爸" },
   { time: "昨天 09:15", action: "种下了小麦种子", by: "妈妈" },
@@ -59,12 +70,14 @@ const INITIAL_PARENT_ACTIONS = [
 
 export const useFarmStore = create<FarmState>((set, get) => {
   const plots = loadPlots();
+  const matureBadgeDismissed = loadMatureBadgeDismissed();
 
   return {
     plots,
     selectedTool: null,
     selectedCrop: null,
     parentActions: INITIAL_PARENT_ACTIONS,
+    matureBadgeDismissed,
 
     selectTool: (tool) => {
       set({ selectedTool: tool });
@@ -183,8 +196,16 @@ export const useFarmStore = create<FarmState>((set, get) => {
       });
 
       const hasChanges = newPlots.some((p, i) => p.stage !== get().plots[i].stage);
+      const hasNewMature = newPlots.some(
+        (p, i) => p.stage === "mature" && get().plots[i].stage !== "mature"
+      );
       if (hasChanges) {
-        set({ plots: newPlots });
+        if (hasNewMature && get().matureBadgeDismissed) {
+          set({ plots: newPlots, matureBadgeDismissed: false });
+          saveMatureBadgeDismissed(false);
+        } else {
+          set({ plots: newPlots });
+        }
         savePlots(newPlots);
       }
     },
@@ -194,6 +215,16 @@ export const useFarmStore = create<FarmState>((set, get) => {
       const timeStr = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
       const newActions = [{ time: `今天 ${timeStr}`, action, by }, ...get().parentActions.slice(0, 4)];
       set({ parentActions: newActions });
+    },
+
+    setMatureBadgeDismissed: (dismissed) => {
+      set({ matureBadgeDismissed: dismissed });
+      saveMatureBadgeDismissed(dismissed);
+    },
+
+    dismissMatureBadge: () => {
+      set({ matureBadgeDismissed: true });
+      saveMatureBadgeDismissed(true);
     },
   };
 });

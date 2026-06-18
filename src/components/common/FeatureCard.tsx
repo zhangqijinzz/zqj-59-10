@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, MouseEvent } from "react";
 import { Link } from "react-router-dom";
 
 interface FeatureCardProps {
@@ -9,6 +9,7 @@ interface FeatureCardProps {
   to: string;
   badge?: string;
   notificationCount?: number;
+  onClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
 }
 
 const colorClasses = {
@@ -50,12 +51,14 @@ export default function FeatureCard({
   to,
   badge,
   notificationCount,
+  onClick,
 }: FeatureCardProps) {
   const colors = colorClasses[color];
 
   return (
     <Link
       to={to}
+      onClick={onClick}
       className={`block p-5 sm:p-6 rounded-3xl ${colors.bg} border-2 ${colors.border} card-hover group relative`}
     >
       {notificationCount != null && notificationCount > 0 && (

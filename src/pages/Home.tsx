@@ -16,8 +16,9 @@ const GREETINGS = [
 
 export default function Home() {
   const { streakDays, checkIn, lastSignDate, addCoins } = useUserStore();
-  const { plots, updateGrowth } = useFarmStore();
+  const { plots, updateGrowth, dismissMatureBadge, matureBadgeDismissed } = useFarmStore();
   const matureCount = plots.filter((p) => p.stage === "mature").length;
+  const showFarmBadge = !matureBadgeDismissed && matureCount > 0 ? matureCount : undefined;
   const [greeting] = useState(
     () => GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
   );
@@ -61,7 +62,8 @@ export default function Home() {
       color: "field" as const,
       to: "/farm",
       badge: "亲子协作",
-      notificationCount: matureCount,
+      notificationCount: showFarmBadge,
+      onClick: () => dismissMatureBadge(),
     },
     {
       icon: <Shield size={28} />,
