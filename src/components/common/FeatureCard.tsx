@@ -8,6 +8,7 @@ interface FeatureCardProps {
   color: "warm" | "field" | "sky" | "wheat";
   to: string;
   badge?: string;
+  notificationCount?: number;
 }
 
 const colorClasses = {
@@ -48,14 +49,20 @@ export default function FeatureCard({
   color,
   to,
   badge,
+  notificationCount,
 }: FeatureCardProps) {
   const colors = colorClasses[color];
 
   return (
     <Link
       to={to}
-      className={`block p-5 sm:p-6 rounded-3xl ${colors.bg} border-2 ${colors.border} card-hover group`}
+      className={`block p-5 sm:p-6 rounded-3xl ${colors.bg} border-2 ${colors.border} card-hover group relative`}
     >
+      {notificationCount != null && notificationCount > 0 && (
+        <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full px-1 shadow-lg animate-bounce">
+          {notificationCount > 99 ? "99+" : notificationCount}
+        </span>
+      )}
       <div className="flex items-start gap-4">
         <div
           className={`p-3 rounded-2xl ${colors.iconBg} group-hover:scale-110 transition-transform`}

@@ -4,6 +4,7 @@ import GooseMascot from "@/components/common/GooseMascot";
 import MoodPicker from "@/components/common/MoodPicker";
 import FeatureCard from "@/components/common/FeatureCard";
 import { useUserStore } from "@/stores/useUserStore";
+import { useFarmStore } from "@/stores/useFarmStore";
 
 const GREETINGS = [
   "早上好呀，今天也要开心哦！",
@@ -15,11 +16,21 @@ const GREETINGS = [
 
 export default function Home() {
   const { streakDays, checkIn, lastSignDate, addCoins } = useUserStore();
+  const { plots, updateGrowth } = useFarmStore();
+  const matureCount = plots.filter((p) => p.stage === "mature").length;
   const [greeting] = useState(
     () => GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
   );
   const [showCheckInSuccess, setShowCheckInSuccess] = useState(false);
   const [todayChecked, setTodayChecked] = useState(false);
+
+  useEffect(() => {
+    updateGrowth();
+    const interval = setInterval(() => {
+      updateGrowth();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [updateGrowth]);
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
@@ -50,6 +61,7 @@ export default function Home() {
       color: "field" as const,
       to: "/farm",
       badge: "亲子协作",
+      notificationCount: matureCount,
     },
     {
       icon: <Shield size={28} />,
